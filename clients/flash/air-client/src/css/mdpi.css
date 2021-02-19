@@ -38,7 +38,7 @@
     }
 
     main|MainView {
-        menuHeight: 80.0;
+        menuHeight: 55.0;
     }
 
     main|MenuButtons {
@@ -46,9 +46,7 @@
     }
 
     skins|MenuButtonSkin {
-        fontSize: 12.0;
-        iconSize: 18.0;
-        labelPadding: 6.0;
+        iconSize: 20.0;
     }
 
     chat|NewMessagesIndicator {
@@ -60,8 +58,8 @@
         padding: 7.0;
         gap: 4.0;
         leftIndent: 22.0;
-        fontSize: 14.0;
-        nameFontSize: 14.0;
+        fontSize: 16.0;
+        nameFontSize: 16.0;
         timeFontSize: 14.0;
     }
 
@@ -73,7 +71,7 @@
         padding: 15.0;
     }
 
-    main|ExitView, main|DisconnectView, main|UserInactivityView {
+    main|ExitView, main|DisconnectView, main|UserInactivityPopUp {
         gap: 15.0;
         padding: 15.0;
     }
@@ -118,9 +116,14 @@
         fontSize: 11.0;
     }
 
-    poll|PollButtons {
+    main|MobilePopUp {
+        cornerRadius: 4.0;
+        fontSize: 11.0;
         padding: 6.0;
-        gap: 9.0;
+    }
+
+    .mobilePopUpUniqueButton, .mobilePopUpFirstButton, .mobilePopUpLastButton, .mobilePopUpLastButton {
+        cornerRadius: 4.0;
     }
 
     .icon {
@@ -129,6 +132,7 @@
 
     .sendButton {
         diameter: 28.0;
+        fontSize: 15.0;
     }
 
     .titleGroup {
@@ -202,12 +206,6 @@
         padding: 15.0;
     }
 
-    .sendButton {
-        fontSize: 10.0;
-        borderWeight: 1.0;
-        cornerRadius: 2.0;
-    }
-
     .echoTestLabel {
         padding: 16.0;
     }
@@ -222,5 +220,9 @@
 
     .audioButtonStyle {
         iconSize: 44.0;
+    }
+
+    .startingScreensharingLabel {
+        fontSize: 28.0;
     }
 }

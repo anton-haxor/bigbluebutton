@@ -1,9 +1,9 @@
 import { getMultiUserStatus } from '/imports/api/common/server/helpers';
 import RedisPubSub from '/imports/startup/server/redis';
-import Acl from '/imports/startup/acl';
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 
+import isPodPresenter from '/imports/api/presentation-pods/server/utils/isPodPresenter';
 
 export default function publishCursorUpdate(credentials, payload) {
   const REDIS_CONFIG = Meteor.settings.private.redis;
@@ -18,9 +18,18 @@ export default function publishCursorUpdate(credentials, payload) {
   check(payload, {
     xPercent: Number,
     yPercent: Number,
+    whiteboardId: String,
   });
 
-  const allowed = Acl.can('methods.moveCursor', credentials) || getMultiUserStatus(meetingId);
+  const {
+    whiteboardId,
+    xPercent,
+    yPercent,
+  } = payload;
+
+  const allowed = isPodPresenter(meetingId, whiteboardId, requesterUserId)
+    || getMultiUserStatus(meetingId, whiteboardId)
+    || (xPercent < 0 && yPercent < 0);
   if (!allowed) {
     throw new Meteor.Error('not-allowed', `User ${requesterUserId} is not allowed to move the cursor`);
   }

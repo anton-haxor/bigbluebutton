@@ -85,8 +85,10 @@ public class Application extends MultiThreadedApplicationAdapter {
 	@Override
 	public boolean appConnect(IConnection conn, Object[] params) {
 
-		if(params.length != 4) {
-			log.error("Invalid number of parameters. param length=" + params.length);
+		final int REQUIRED_PARAMS = 5;
+
+		if(params.length != REQUIRED_PARAMS) {
+			log.error("Invalid number of parameters. Provided parameters={}. Required parameters={}", params.length, REQUIRED_PARAMS);
 			return false;
 		}
 
@@ -94,6 +96,7 @@ public class Application extends MultiThreadedApplicationAdapter {
 		String userId = ((String) params[1]).toString();
 		String username = ((String) params[2]).toString();
 		String authToken = ((String) params[3]).toString();
+		String clientConnId = ((String) params[4]).toString();
 
 		if (StringUtils.isEmpty(meetingId)) {
 			log.error("Invalid meetingId parameter.");
@@ -122,6 +125,7 @@ public class Application extends MultiThreadedApplicationAdapter {
 		Red5.getConnectionLocal().setAttribute("MEETING_ID", meetingId);
 		Red5.getConnectionLocal().setAttribute("USERID", userId);
 		Red5.getConnectionLocal().setAttribute("USERNAME", username);
+        Red5.getConnectionLocal().setAttribute("CLIENT_CONN_ID", clientConnId);
 
 		log.info("{} [clientid={}] has connected to the voice conf app.", username + "[uid=" + userId + "]", clientId);
 		log.info("[clientid={}] connected from {}.", clientId, remoteHost + ":" + remotePort);
@@ -137,6 +141,7 @@ public class Application extends MultiThreadedApplicationAdapter {
 		logData.put("meetingId", meetingId);
 		logData.put("connType", connType);
 		logData.put("connId", connId);
+        logData.put("clientConnId", clientConnId);
 		logData.put("userId", userId);
 		logData.put("username", userFullname);
 		logData.put("event", "user_joining_bbb_voice");
@@ -175,11 +180,13 @@ public class Application extends MultiThreadedApplicationAdapter {
 		String connType = getConnectionType(Red5.getConnectionLocal().getType());
 		String userFullname = username;
 		String connId = Red5.getConnectionLocal().getSessionId();
+		String clientConnId = conn.getAttribute("CLIENT_CONN_ID").toString();
 
 		Map<String, Object> logData = new HashMap<String, Object>();
 		logData.put("meetingId", getMeetingId());
 		logData.put("connType", connType);
 		logData.put("connId", connId);
+        logData.put("clientConnId", clientConnId);
 		logData.put("userId", userId);
 		logData.put("username", userFullname);
 		logData.put("event", "user_leaving_bbb_voice");
@@ -196,8 +203,10 @@ public class Application extends MultiThreadedApplicationAdapter {
 
 		if (peerId != null) {
 				try {
+					boolean notifyApps = !clientConnManager.hasActiveConnections(userId);
+					// Check if client reconnected. If so, notify apps. ralam oct 35, 2018
 					log.debug("Forcing hang up {} [clientid={}] in case the user is still in the conference.", username + "[uid=" + userId + "]", clientId);
-					sipPeerManager.hangup(peerId, clientId);
+					sipPeerManager.hangup(peerId, clientId, notifyApps);
 				} catch (PeerNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

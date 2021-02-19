@@ -2,14 +2,18 @@ package org.bigbluebutton.core2
 
 import java.util.concurrent.TimeUnit
 
+import org.bigbluebutton.core.util.TimeUtil
+
 case class Permissions(
-  disableCam:             Boolean = false,
-  disableMic:             Boolean = false,
-  disablePrivChat:        Boolean = false,
-  disablePubChat:         Boolean = false,
-  lockedLayout:           Boolean = false,
-  lockOnJoin:             Boolean = true,
-  lockOnJoinConfigurable: Boolean = false
+    disableCam:             Boolean = false,
+    disableMic:             Boolean = false,
+    disablePrivChat:        Boolean = false,
+    disablePubChat:         Boolean = false,
+    disableNote:            Boolean = false,
+    hideUserList:           Boolean = false,
+    lockedLayout:           Boolean = false,
+    lockOnJoin:             Boolean = true,
+    lockOnJoinConfigurable: Boolean = false
 )
 
 case class MeetingExtensionProp(maxExtensions: Int = 2, numExtensions: Int = 0, extendByMinutes: Int = 20,
@@ -17,13 +21,6 @@ case class MeetingExtensionProp(maxExtensions: Int = 2, numExtensions: Int = 0, 
                                 sent10MinNotice: Boolean = false, sent5MinNotice: Boolean = false)
 
 object MeetingStatus2x {
-
-  def isVoiceRecording(status: MeetingStatus2x): Boolean = {
-    status.voiceRecordings.values.find(s => s.recording) match {
-      case Some(rec) => true
-      case None      => false
-    }
-  }
 
   def isExtensionAllowed(status: MeetingStatus2x): Boolean = status.extension.numExtensions < status.extension.maxExtensions
   def incNumExtension(status: MeetingStatus2x): Int = {
@@ -44,6 +41,20 @@ object MeetingStatus2x {
   def recordingStarted(status: MeetingStatus2x) = status.recording = true
   def recordingStopped(status: MeetingStatus2x) = status.recording = false
   def isRecording(status: MeetingStatus2x): Boolean = status.recording
+
+  def authUserHadJoined(status: MeetingStatus2x) = status.authedUserHasJoined = true
+  def hasAuthedUserJoined(status: MeetingStatus2x): Boolean = status.authedUserHasJoined
+
+  def setLastAuthedUserLeftOn(status: MeetingStatus2x) = status.lastAuthedUserLeftOn = TimeUtil.timeNowInMs()
+  def getLastAuthedUserLeftOn(status: MeetingStatus2x): Long = status.lastAuthedUserLeftOn
+  def resetLastAuthedUserLeftOn(status: MeetingStatus2x) = status.lastAuthedUserLeftOn = 0L
+
+  def isVoiceRecording(status: MeetingStatus2x): Boolean = {
+    status.voiceRecordings.values.find(s => s.recording) match {
+      case Some(rec) => true
+      case None      => false
+    }
+  }
 
   def voiceRecordingStart(status2x: MeetingStatus2x, stream: String): VoiceRecordingStream = {
     val vrs = new VoiceRecordingStream(stream, recording = false, createdOn = System.currentTimeMillis, ackedOn = None, stoppedOn = None)
@@ -100,7 +111,8 @@ object MeetingStatus2x {
 }
 
 class MeetingStatus2x {
-  private var voiceRecordings: collection.immutable.HashMap[String, VoiceRecordingStream] = new collection.immutable.HashMap[String, VoiceRecordingStream]
+  private var voiceRecordings: collection.immutable.HashMap[String, VoiceRecordingStream] =
+    new collection.immutable.HashMap[String, VoiceRecordingStream]
 
   private var audioSettingsInited = false
   private var permissionsInited = false
@@ -115,6 +127,8 @@ class MeetingStatus2x {
 
   private var webcamsOnlyForModerator = false
 
+  private var authedUserHasJoined = false
+  private var lastAuthedUserLeftOn = 0L
 }
 
 case class VoiceRecordingStream(stream: String, recording: Boolean, createdOn: Long, ackedOn: Option[Long], stoppedOn: Option[Long])

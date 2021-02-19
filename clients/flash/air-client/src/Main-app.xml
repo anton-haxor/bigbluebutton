@@ -278,6 +278,7 @@
 
 	<android>
 		<colorDepth>32bit</colorDepth>
+	    <containsVideo>true</containsVideo>
 		<manifestAdditions>
 			<![CDATA[
 			<manifest android:installLocation="auto">
@@ -384,5 +385,6 @@
 	<extensions>
         <extensionID>com.freshplanet.AirCapabilities</extensionID>
         <extensionID>com.juankpro.ane.LocalNotification</extensionID>
+        <extensionID>org.bigbluebutton.BBBRtmpPlayer</extensionID>
     </extensions>
 </application>

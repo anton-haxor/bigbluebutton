@@ -6,15 +6,15 @@ import scala.collection.SortedSet
 import org.apache.commons.codec.digest.DigestUtils
 
 trait BreakoutApp2x extends BreakoutRoomCreatedMsgHdlr
-    with BreakoutRoomsListMsgHdlr
-    with BreakoutRoomUsersUpdateMsgHdlr
-    with CreateBreakoutRoomsCmdMsgHdlr
-    with EndAllBreakoutRoomsMsgHdlr
-    with RequestBreakoutJoinURLReqMsgHdlr
-    with SendBreakoutUsersUpdateMsgHdlr
-    with TransferUserToMeetingRequestHdlr
-    with EndBreakoutRoomInternalMsgHdlr
-    with BreakoutRoomEndedInternalMsgHdlr {
+  with BreakoutRoomsListMsgHdlr
+  with BreakoutRoomUsersUpdateMsgHdlr
+  with CreateBreakoutRoomsCmdMsgHdlr
+  with EndAllBreakoutRoomsMsgHdlr
+  with RequestBreakoutJoinURLReqMsgHdlr
+  with SendBreakoutUsersUpdateMsgHdlr
+  with TransferUserToMeetingRequestHdlr
+  with EndBreakoutRoomInternalMsgHdlr
+  with BreakoutRoomEndedInternalMsgHdlr {
 
   this: MeetingActor =>
 
@@ -56,10 +56,11 @@ object BreakoutRoomsUtil {
       "userID" -> urlEncode(userId),
       "isBreakout" -> urlEncode(isBreakout.toString()),
       "meetingID" -> urlEncode(breakoutMeetingId),
-      "password" -> urlEncode(password)
+      "password" -> urlEncode(password),
+      "redirect" -> urlEncode("true")
     )
 
-    (params + ("redirect" -> urlEncode("true")), params + ("redirect" -> urlEncode("false")))
+    (params, params + ("joinViaHtml5" -> urlEncode("true")))
   }
 
   def sortParams(params: collection.immutable.Map[String, String]): SortedSet[String] = {

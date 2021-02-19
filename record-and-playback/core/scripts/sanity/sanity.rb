@@ -18,8 +18,7 @@
 # with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
 #
 
-
-require '../lib/recordandplayback'
+require File.expand_path('../../../lib/recordandplayback', __FILE__)
 require 'logger'
 require 'trollop'
 require 'yaml'
@@ -27,14 +26,14 @@ require "nokogiri"
 require "redis"
 require "fileutils"
 
-# This script lives in scripts/archive/steps while bigbluebutton.yml lives in scripts/
-props = YAML::load(File.open('bigbluebutton.yml'))
+props = BigBlueButton.read_props
 log_dir = props['log_dir']
 audio_dir = props['raw_audio_src']
 recording_dir = props['recording_dir']
 raw_archive_dir = "#{recording_dir}/raw"
 redis_host = props['redis_host']
 redis_port = props['redis_port']
+redis_password = props['redis_password']
 
 opts = Trollop::options do
   opt :meeting_id, "Meeting id to archive", type: :string
@@ -66,13 +65,12 @@ def repair_red5_ser(directory)
         ret = BigBlueButton.exec_ret('java', '-cp', cp, 'org.red5.io.flv.impl.FLVWriter', ser, '0', '7')
         if ret != 0
           BigBlueButton.logger.warn("Failed to repair #{ser}")
+          next
         end
-      end
 
-      BigBlueButton.logger.info("Cleaning up red5 .flv.ser and .flv.info files")
-      Dir.glob("*.flv.{ser,info}").each do |f|
-        BigBlueButton.logger.info("Removing #{f}")
-        FileUtils.rm(f)
+        BigBlueButton.logger.info("Cleaning up .flv.ser and .flv.info files")
+        FileUtils.rm_f(ser)
+        FileUtils.rm_f("#{ser[0..-5]}.info")
       end
     end
   end
@@ -108,7 +106,7 @@ begin
     # Either this recording isn't segmented, or we are working on the last
     # segment, so go ahead and clean up all the redis data.
     logger.info("Deleting keys")
-    redis = BigBlueButton::RedisWrapper.new(redis_host, redis_port)
+    redis = BigBlueButton::RedisWrapper.new(redis_host, redis_port, redis_password)
     events_archiver = BigBlueButton::RedisEventsArchiver.new(redis)
     events_archiver.delete_events(meeting_id)
   end

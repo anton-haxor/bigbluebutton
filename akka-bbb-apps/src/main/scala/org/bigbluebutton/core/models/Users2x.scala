@@ -19,6 +19,38 @@ object Users2x {
     users.remove(intId)
   }
 
+  def setUserLeftFlag(users: Users2x, intId: String): Option[UserState] = {
+    for {
+      u <- findWithIntId(users, intId)
+    } yield {
+      val newUser = u.copy(userLeftFlag = UserLeftFlag(true, System.currentTimeMillis()))
+      users.save(newUser)
+      newUser
+    }
+  }
+
+  def resetUserLeftFlag(users: Users2x, intId: String): Option[UserState] = {
+    for {
+      u <- findWithIntId(users, intId)
+    } yield {
+      val newUser = u.copy(userLeftFlag = UserLeftFlag(false, 0))
+      users.save(newUser)
+      newUser
+    }
+  }
+
+  def findAllExpiredUserLeftFlags(users: Users2x, meetingExpireWhenLastUserLeftInMs: Long): Vector[UserState] = {
+    if (meetingExpireWhenLastUserLeftInMs > 0) {
+      users.toVector filter (u => u.userLeftFlag.left && u.userLeftFlag.leftOn != 0 &&
+        System.currentTimeMillis() - u.userLeftFlag.leftOn > 1000)
+    } else {
+      // When meetingExpireWhenLastUserLeftInMs is set zero we need to
+      // remove user right away to end the meeting as soon as possible.
+      // ralam Nov 16, 2018
+      users.toVector filter (u => u.userLeftFlag.left && u.userLeftFlag.leftOn != 0)
+    }
+  }
+
   def numUsers(users: Users2x): Int = {
     users.toVector.length
   }
@@ -27,8 +59,8 @@ object Users2x {
     users.toVector.filter(u => !u.presenter)
   }
 
-  def updateInactivityResponse(users: Users2x, u: UserState): UserState = {
-    val newUserState = modify(u)(_.inactivityResponseOn).setTo(TimeUtil.timeNowInMs())
+  def updateLastUserActivity(users: Users2x, u: UserState): UserState = {
+    val newUserState = modify(u)(_.lastActivityTime).setTo(TimeUtil.timeNowInMs())
     users.save(newUserState)
     newUserState
   }
@@ -108,6 +140,10 @@ object Users2x {
 
   def findModerator(users: Users2x): Option[UserState] = {
     users.toVector.find(u => u.role == Roles.MODERATOR_ROLE)
+  }
+
+  def findAllAuthedUsers(users: Users2x): Vector[UserState] = {
+    users.toVector.find(u => u.authed).toVector
   }
 
   def addUserToPresenterGroup(users: Users2x, userIdToAdd: String): Boolean = {
@@ -209,11 +245,25 @@ class Users2x {
 
 case class OldPresenter(userId: String, changedPresenterOn: Long)
 
-case class UserState(intId: String, extId: String, name: String, role: String,
-                     guest: Boolean, authed: Boolean, guestStatus: String, emoji: String, locked: Boolean,
-                     presenter: Boolean, avatar: String,
-                     roleChangedOn:        Long = System.currentTimeMillis(),
-                     inactivityResponseOn: Long = TimeUtil.timeNowInMs())
+case class UserLeftFlag(left: Boolean, leftOn: Long)
+
+case class UserState(
+    intId:            String,
+    extId:            String,
+    name:             String,
+    role:             String,
+    guest:            Boolean,
+    authed:           Boolean,
+    guestStatus:      String,
+    emoji:            String,
+    locked:           Boolean,
+    presenter:        Boolean,
+    avatar:           String,
+    roleChangedOn:    Long         = System.currentTimeMillis(),
+    lastActivityTime: Long         = TimeUtil.timeNowInMs(),
+    clientType:       String,
+    userLeftFlag:     UserLeftFlag
+)
 
 case class UserIdAndName(id: String, name: String)
 
@@ -229,6 +279,11 @@ object Roles {
   val VIEWER_ROLE = "VIEWER"
   val GUEST_ROLE = "GUEST"
   val AUTHENTICATED_ROLE = "AUTHENTICATED"
+}
+
+object ClientType {
+  val FLASH = "FLASH"
+  val HTML5 = "HTML5"
 }
 
 object SystemUser {

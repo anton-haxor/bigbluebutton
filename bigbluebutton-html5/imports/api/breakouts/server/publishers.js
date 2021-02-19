@@ -1,32 +1,53 @@
 import { Meteor } from 'meteor/meteor';
-import mapToAcl from '/imports/startup/mapToAcl';
 import Breakouts from '/imports/api/breakouts';
+import Users from '/imports/api/users';
 import Logger from '/imports/startup/server/logger';
 
-function breakouts(credentials) {
+const ROLE_MODERATOR = Meteor.settings.public.user.role_moderator;
+
+function breakouts(credentials, moderator = false) {
   const {
     meetingId,
     requesterUserId,
   } = credentials;
+  Logger.debug(`Publishing Breakouts for ${meetingId} ${requesterUserId}`);
 
-  Logger.info(`Publishing Breakouts for ${meetingId} ${requesterUserId}`);
+  if (moderator) {
+    const User = Users.findOne({ userId: requesterUserId });
+    if (!!User && User.role === ROLE_MODERATOR) {
+      const presenterSelector = {
+        $or: [
+          { parentMeetingId: meetingId },
+          { breakoutId: meetingId },
+        ],
+      };
 
-  return Breakouts.find({
+      return Breakouts.find(presenterSelector);
+    }
+  }
+
+  const selector = {
     $or: [
-      { breakoutId: meetingId },
-      { meetingId },
       {
-        users: {
-          $elemMatch: { userId: requesterUserId },
-        },
+        parentMeetingId: meetingId,
+        freeJoin: true,
+      },
+      {
+        parentMeetingId: meetingId,
+        'users.userId': requesterUserId,
+      },
+      {
+        breakoutId: meetingId,
       },
     ],
-  });
+  };
+
+  return Breakouts.find(selector);
 }
 
 function publish(...args) {
   const boundBreakouts = breakouts.bind(this);
-  return mapToAcl('subscriptions.breakouts', boundBreakouts)(args);
+  return boundBreakouts(...args);
 }
 
 Meteor.publish('breakouts', publish);

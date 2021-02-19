@@ -79,8 +79,12 @@
 /* Shared styles */
 
 global {
-	font-family : SourceSansPro;
-	color       : PropertyReference("bbbBlack");
+	font-family               : SourceSansPro;
+	color                     : PropertyReference("bbbBlack");
+	modalTransparencyBlur     : 0;
+	modalTransparency         : 0.5;
+	modalTransparencyColor    : black;
+	modalTransparencyDuration : 250;
 }
 
 /* Classes */
@@ -92,9 +96,9 @@ s|Application {
 s|Button {
 	fontFamily 				: SourceSansPro;
 	color                   : PropertyReference("white");
-	backgroundColor         : PropertyReference("blue500");
-	borderColor             : PropertyReference("white");
-	selectedBackgroundColor : PropertyReference("blue900");
+	backgroundColor         : PropertyReference("bbbBlue");
+	borderVisible           : false;
+	selectedBackgroundColor : PropertyReference("blue500");
 	skinClass               : ClassReference("org.bigbluebutton.air.main.views.skins.ActionButtonSkin");
 }
 
@@ -193,6 +197,35 @@ main|EmojiItemRenderer {
 	selectedColor : PropertyReference("bbbBlue");
 }
 
+main|MobilePopUp {
+	separatorColor : PropertyReference("grey300");
+	skinClass      : ClassReference("org.bigbluebutton.air.main.views.skins.MobilePopUpSkin");
+}
+
+.mobilePopUpUniqueButton, .mobilePopUpFirstButton, .mobilePopUpLastButton, .mobilePopUpLastButton {
+	fontFamily 				: SourceSansPro;
+	color                   : PropertyReference("bbbBlue");
+	backgroundColor         : PropertyReference("white");
+	borderVisible           : false;
+	selectedBackgroundColor : PropertyReference("grey100");
+	skinClass               : ClassReference("org.bigbluebutton.air.main.views.skins.MobilePopUpButtonSkin");
+}
+
+.mobilePopUpUniqueButton {
+	position : "unique";
+}
+
+.mobilePopUpFirstButton {
+	position : "first";
+}
+
+.mobilePopUpMiddleButton {
+	position : "middle";
+}
+
+.mobilePopUpLastButton {
+	position : "last";
+}
 
 .statusList {
 	contentBackgroundAlpha : 0;
@@ -219,7 +252,7 @@ chat|NewMessagesIndicator {
 }
 
 chat|ChatItemRenderer {
-	color     : PropertyReference("grey700");
+	color     : PropertyReference("bbbDarkGrey");
 	nameColor : PropertyReference("blue900");
 }
 
@@ -268,16 +301,6 @@ settings|SettingsItemRenderer {
 	skinClass  : ClassReference("org.bigbluebutton.air.main.views.skins.SaveButtonSkin");
 }
 
-.voteButton {
-	color                   : PropertyReference("white");
-	cornerRadius            : 0;
-	borderVisible 			: false;
-	backgroundColor         : PropertyReference("bbbBlue");
-	fontFamily              : SourceSansPro;
-	selectedBackgroundColor : PropertyReference("darkBlue");
-	skinClass               : ClassReference("org.bigbluebutton.air.main.views.skins.ActionButtonSkin");
-}
-
 .settingsIcon {
 	iconColor : PropertyReference("grey700");
 }
@@ -290,7 +313,6 @@ settings|SettingsItemRenderer {
 	fontFamily              : SourceSansPro;
 	backgroundColor         : PropertyReference("bbbBlue");
 	selectedBackgroundColor : PropertyReference("darkBlue");
-	color                   : PropertyReference("white");
 	iconFont                : BBBIcons;
 	iconColor               : PropertyReference("white");
 	skinClass               : ClassReference("org.bigbluebutton.air.main.views.skins.MenuButtonSkin");
@@ -352,4 +374,9 @@ settings|SettingsItemRenderer {
 	fillColorUp         : PropertyReference("blue500");
 	borderColorOver     : PropertyReference("grey700");
 	borderColorDown     : PropertyReference("grey700");
+}
+
+.startingScreensharingLabel {
+	color     : PropertyReference("bbbBlack");
+	textAlign : center;
 }
